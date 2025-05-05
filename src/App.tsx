@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import WalletConnect from './components/WalletConnect';
+import PortfolioBalance from './components/PortfolioBalance';
 
 function App() {
   const [connectedAccount, setConnectedAccount] = useState<string>('');
@@ -18,10 +19,8 @@ function App() {
         <WalletConnect onConnect={handleWalletConnect} />
         
         {connectedAccount && (
-          <div style={{ marginTop: '20px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-            <h3>Dashboard</h3>
-            <p>Wallet connected: {connectedAccount}</p>
-            <p>Ready to track your DeFi yields...</p>
+          <div style={{ marginTop: '20px' }}>
+            <PortfolioBalance walletAddress={connectedAccount} />
           </div>
         )}
         
