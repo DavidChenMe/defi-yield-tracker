@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { Portfolio, TokenBalance } from '../types';
+import { defiProtocolService } from '../services/defiProtocols';
 
 interface PortfolioBalanceProps {
   walletAddress: string;
@@ -28,8 +29,11 @@ const PortfolioBalance: React.FC<PortfolioBalanceProps> = ({ walletAddress }) =>
         const ethBalance = await provider.getBalance(walletAddress);
         const ethBalanceFormatted = ethers.formatEther(ethBalance);
         
+        const defiPositions = await defiProtocolService.getAllPositions(walletAddress);
+        const poolsTotalValue = defiPositions.reduce((sum, pool) => sum + pool.totalUsdValue, 0);
+        
         const mockPortfolio: Portfolio = {
-          totalValue: parseFloat(ethBalanceFormatted) * 2500,
+          totalValue: parseFloat(ethBalanceFormatted) * 2500 + poolsTotalValue,
           tokens: [
             {
               token: '0x0000000000000000000000000000000000000000',
@@ -38,7 +42,7 @@ const PortfolioBalance: React.FC<PortfolioBalanceProps> = ({ walletAddress }) =>
               usdValue: parseFloat(ethBalanceFormatted) * 2500
             }
           ],
-          pools: []
+          pools: defiPositions
         };
         
         setPortfolio(mockPortfolio);
@@ -136,8 +140,47 @@ const PortfolioBalance: React.FC<PortfolioBalanceProps> = ({ walletAddress }) =>
 
       {portfolio.pools.length > 0 && (
         <div style={{ marginTop: '20px' }}>
-          <h4>LP Positions</h4>
-          <p style={{ color: '#666' }}>Coming soon...</p>
+          <h4>DeFi Positions</h4>
+          <div style={{ border: '1px solid #eee', borderRadius: '5px' }}>
+            {portfolio.pools.map((position, index) => (
+              <div 
+                key={`${position.protocol}-${index}`}
+                style={{ 
+                  padding: '15px', 
+                  borderBottom: index < portfolio.pools.length - 1 ? '1px solid #eee' : 'none'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <div>
+                    <strong>{position.poolName}</strong>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                      {position.protocol}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 'bold' }}>
+                      {formatCurrency(position.totalUsdValue)}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#28a745' }}>
+                      {position.apr.toFixed(1)}% APR
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', fontSize: '14px' }}>
+                  {position.token0.balance !== '0' && (
+                    <span>
+                      {formatTokenAmount(position.token0.balance)} {position.token0.symbol}
+                    </span>
+                  )}
+                  {position.token1.balance !== '0' && (
+                    <span>
+                      + {formatTokenAmount(position.token1.balance)} {position.token1.symbol}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
