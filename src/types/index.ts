@@ -20,3 +20,19 @@ export interface Portfolio {
   tokens: TokenBalance[];
   pools: PoolPosition[];
 }
+
+export interface YieldHistoryEntry {
+  date: string;
+  protocol: string;
+  poolName: string;
+  yieldAmount: number;
+  tokenSymbol: string;
+  usdValue: number;
+}
+
+export interface YieldSummary {
+  totalYieldUSD: number;
+  dailyYields: YieldHistoryEntry[];
+  weeklyYields: YieldHistoryEntry[];
+  monthlyYields: YieldHistoryEntry[];
+}
